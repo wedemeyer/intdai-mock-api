@@ -1,0 +1,12 @@
+{
+	"production": {
+		"db": {
+			"file": "database.sqlite"
+		}
+	},
+	"test": {
+		"db": {
+			"file": "database.sqlite"
+		}
+	}
+}

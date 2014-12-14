@@ -1,0 +1,39 @@
+{
+  "name" : "intdai-mock.server",
+  "version" : "0.0.1",
+  "description" : "Mock API server for the INTDAI project",
+  "main" : "./index.js",
+  "dependencies" : {
+    "express" : "~4.10.4",
+    "uuid" : "~2.0.1",
+    "sqlite3": "3.0.4",
+    "async": "0.9.0",
+    "synchronize": "0.9.8",
+    "to-camel-case": "0.2.1"
+  },
+  "devDependencies" : {
+    "mocha" : "~2.0.1",
+    "assert" : "~1.1.2",
+    "request": "~2.49.0",
+    "underscore": "~1.7.0",
+    "schema-validator": "~3.2.1"
+  },
+  "scripts" : {
+    "test" : "mocha test ./test/*.js"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/mbiermann/intdai-mock-server.git"
+  },
+  "keywords" : [
+  ],
+  "author" : {
+    "name" : "Martin Biermann",
+    "email" : "info@martinbiermann.com",
+    "url" : "http://martinbiermann.com"
+  },
+  "license" : "MIT/X11",
+  "engine" : {
+    "node" : ">=0.4"
+  }
+}
