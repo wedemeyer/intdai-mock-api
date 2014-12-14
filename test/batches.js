@@ -11,7 +11,7 @@ describe('Tests', function() {
 
   before(function(done) {
     app = require('./../app').create();
-    server = app.listen(process.env.PORT || 4733);
+    server = app.listen(process.env.PORT || 4730);
     done();
   });
 

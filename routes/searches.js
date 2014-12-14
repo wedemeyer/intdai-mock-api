@@ -1,6 +1,6 @@
 var async = require("async");
 
-exports.route = function(app) {
+exports.route = function(app, router) {
 
   function searchProducts(req, resp) {
     var tags = req.query.query.split(" ");
@@ -57,7 +57,7 @@ exports.route = function(app) {
     });
   };
 
-  app.get(/^\/searches$/, function(req, resp) {
+  router.get(/^\/searches$/, function(req, resp) {
     switch (req.query.type) {
       case "product":
         searchProducts(req, resp);

@@ -3,6 +3,7 @@ var request = require("request");
 var assert = require("assert");
 var async = require("async");
 var app = null;
+var server = null;
 var config = require('../config');
 var sqlite3 = require('sqlite3');
 var validation = require('../lib/validation');
@@ -12,13 +13,14 @@ var db = null;
 describe('Tests', function() {
 
   before(function(done) {
-    app = require('./../app').create().listen(process.env.PORT || 4732);
+    app = require('./../app').create();
+    server = app.listen(process.env.PORT || 4730);
     db = new sqlite3.Database(config.test.db.file, sqlite3.OPEN_READONLY);;
     done();
   });
 
   after(function(done){
-    app.close();
+    server.close();
     done();
   });
 
@@ -37,7 +39,7 @@ describe('Tests', function() {
     db.all(query, tags, function(err, products) {
       assert(!err, "Unexpected error when fetching products by query ("+err+")");
       assert(products.length > 0, "Unexpected missing results when fetching products by query");
-      request("http://localhost:4732/searches?query="+tags.join(" ")+"&type=product", function(error, response, body) {
+      request(app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product", function(error, response, body) {
         assert(!error, "Unexpected error "+error);
         assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
         validation.checkSchemaRecursive(require('./schemas/searches/productsSearchResponse'), JSON.parse(body), function(err) {
@@ -59,7 +61,7 @@ describe('Tests', function() {
     db.all(query, function(err, res) {
       assert(!err, "Unexpected error when fetching products by query ("+err+")");
       assert(res.length > 0, "Unexpected missing tags when fetching tags for terms search by query");
-      request("http://localhost:4732/searches?query="+tags.join(" ")+"&type=term", function(error, response, body) {
+      request(app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=term", function(error, response, body) {
         assert(!error, "Unexpected error "+error);
         assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
         validation.checkSchemaRecursive(require('./schemas/searches/termsSearchResponse'), JSON.parse(body), function(err) {

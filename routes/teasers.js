@@ -1,6 +1,6 @@
 var async = require("async");
 
-exports.route = function(app) {
+exports.route = function(app, router) {
 
   function respondTeaserById(id, req, resp) {
     app.db.get("SELECT * FROM `teasers` WHERE `id`=?", id, function(err, res) {
@@ -82,7 +82,7 @@ exports.route = function(app) {
     });
   }
 
-  app.get(/^\/teasers\/([^\/]+)$/, function(req, res) {
+  router.get(/^\/teasers\/([^\/]+)$/, function(req, res) {
     var variable = req.params[0];
     switch (variable) {
       case "banner":

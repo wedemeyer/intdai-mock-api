@@ -4,6 +4,7 @@ var sqlite3 = require('sqlite3');
 
 exports.create = function() {
     app = express();
+    var router = express.Router();
 
     app.db = new sqlite3.Database(config.production.db.file, sqlite3.OPEN_READONLY);
 
@@ -45,7 +46,9 @@ exports.create = function() {
         return "http://" + server.address().address + ":" + server.address().port;
     }
 
-    require('./routes').route(app);
+    require('./routes').route(app, router);
+
+    app.use('/', router);
 
     return app;
 }

@@ -1,9 +1,9 @@
 var async = require("async");
 var request = require("request");
 
-exports.route = function(app) {
+exports.route = function(app, router) {
 
-	app.get(/^\/batches$/, function (req, resp) {
+	router.get(/^\/batches$/, function (req, resp) {
 		var urls = req.query["urls"];
 		if (!urls) return resp.status(404).end();
 		async.map(urls, function (url, cb) {

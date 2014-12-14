@@ -1,6 +1,6 @@
-exports.route = function(app) {
+exports.route = function(app, router) {
 
-	app.get(/^\/categories\/top$/, function(req, resp) {
+	router.get(/^\/categories\/top$/, function(req, resp) {
 		var query = "SELECT c.id, label, img_url_4x4 as `imgUrl4x4`, tags "
 		+ "FROM `categories` AS c "
 		+ "LEFT JOIN `item_queries` AS iq "
@@ -18,7 +18,7 @@ exports.route = function(app) {
 		});
 	});
 
-	app.get(/^\/categories\/([^\/]+)\/subcategories/, function(req, resp) {
+	router.get(/^\/categories\/([^\/]+)\/subcategories/, function(req, resp) {
 		var query = "SELECT c.id, label, img_url_4x4 as `imgUrl4x4`, tags "
 		+ "FROM `categories` AS c "
 		+ "LEFT JOIN `item_queries` AS iq "
@@ -36,7 +36,7 @@ exports.route = function(app) {
 		});
 	});
 
-	app.get(/^\/categories\/([^\/]+)$/, function(req, resp) {
+	router.get(/^\/categories\/([^\/]+)$/, function(req, resp) {
 	  	var query = "SELECT c.id, label, img_url_4x4 as `imgUrl4x4`, tags "
 		+ "FROM `categories` AS c "
 		+ "LEFT JOIN `item_queries` AS iq "

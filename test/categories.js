@@ -3,6 +3,7 @@ var request = require("request");
 var assert = require("assert");
 var async = require("async");
 var app = null;
+var server = null;
 var config = require('../config');
 var sqlite3 = require('sqlite3');
 var validation = require('../lib/validation');
@@ -12,13 +13,14 @@ var db = null;
 describe('Tests', function() {
 
   before(function(done) {
-    app = require('./../app').create().listen(process.env.PORT || 4732);
+    app = require('./../app').create();
+    server = app.listen(process.env.PORT || 4730);
     db = new sqlite3.Database(config.test.db.file, sqlite3.OPEN_READONLY);;
     done();
   });
 
   after(function(done){
-    app.close();
+    server.close();
     done();
   });
 
@@ -40,7 +42,7 @@ describe('Tests', function() {
         item.itemsQuery = { tags: JSON.parse(item.tags) };
         delete item.tags;
       });
-      request("http://localhost:4732/categories/top", function(error, response, body) {
+      request(app.getBaseUrl(server)+"/categories/top", function(error, response, body) {
         assert(!error, "Unexpected error "+error);
         assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
         body = JSON.parse(body);
@@ -67,7 +69,7 @@ describe('Tests', function() {
     db.get(query, function(err, res) {
       assert(!err, "Unexpected error when fetching all categories ("+err+")");
       assert(!!res, "Unexpected missing category when fetching by random");
-      request("http://localhost:4732/categories/"+res.id, function(error, response, body) {
+      request(app.getBaseUrl(server)+"/categories/"+res.id, function(error, response, body) {
         assert(!error, "Unexpected error: "+error);
         assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
         body = JSON.parse(body);
@@ -93,7 +95,7 @@ describe('Tests', function() {
       db.get("SELECT count(*) as `count` FROM categories WHERE parent_id = ?", topCatId, function (err, res) {
         assert(!err, "Unexpected error when fetching all subcategories for top category with ID "+topCatId+" ("+err+")");
         assert(!!res, "Unexpected missing subcategories");
-        request("http://localhost:4732/categories/"+topCatId+"/subcategories", function(error, response, body) {
+        request(app.getBaseUrl(server)+"/categories/"+topCatId+"/subcategories", function(error, response, body) {
           assert(!error, "Unexpected error "+error);
           assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
           body = JSON.parse(body);
