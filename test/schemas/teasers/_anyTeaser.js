@@ -31,6 +31,10 @@ exports.runCustomSchemas = function(run, obj, done) {
 							errorMsg: "Unexpected sections schema",
 							getSchema: function() {
 								return {
+									title: {
+										type: String,
+										required: true
+									},
 									flowType: {
 										type: String,
 										required: true,

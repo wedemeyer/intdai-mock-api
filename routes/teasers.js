@@ -25,7 +25,7 @@ exports.route = function(app, router) {
         });
       } else {
         teaser["sections"] = [];
-        var query = "SELECT `tags`, `flow_type` FROM `rel__teasers__teaser_sections` AS rel "
+        var query = "SELECT `tags`, `flow_type`, ts.`title` FROM `rel__teasers__teaser_sections` AS rel "
         + "LEFT JOIN `teaser_sections` AS ts ON rel.teaser_section_id = ts.id "
         + "LEFT JOIN `item_queries` AS iq ON iq.id = ts.item_query_id "
         + "WHERE `teaser_id`=?";
@@ -33,7 +33,11 @@ exports.route = function(app, router) {
           if (err != null) return resp.status(501).end();
           for (var i=0; i<res.length; i++) {
             var section = res[i];
-            teaser.sections.push({ "flowType": section.flow_type, "itemsQuery": {"tags": JSON.parse(section.tags)} });
+            teaser.sections.push({ 
+              "title": section.title, 
+              "flowType": section.flow_type, 
+              "itemsQuery": {"tags": JSON.parse(section.tags)} 
+            });
           }
           finalize(teaser);
         });  
@@ -41,10 +45,10 @@ exports.route = function(app, router) {
     });
   }
 
-  function respondTeaserPageForClass(cls, req, res) {
-    app.db.all("SELECT * FROM `teasers` WHERE `class`=?", cls, function(err, resp) {
-      if (err != null) return res.status(501).end();
-      if (resp.length == 0) return res.status(200).json({"data":[]});
+  function respondTeaserPageForClass(cls, req, resp) {
+    app.db.all("SELECT * FROM `teasers` WHERE `class`=?", cls, function(err, res) {
+      if (err != null) return resp.status(501).end();
+      if (res.length == 0) return resp.status(200).json({"data":[]});
       async.map(resp, function(data, cb) {
         var teaser = {
           "id": data.id,
@@ -55,21 +59,25 @@ exports.route = function(app, router) {
         if (undefined != data["item_query_id"]) {
           var query = "SELECT `tags` FROM `item_queries` WHERE `id`=?";
           app.db.get(query, data.item_query_id, function(err, res) {
-            if (err != null) return res.status(501).end();
+            if (err != null) return resp.status(501).end();
             teaser["itemsQuery"] = {"tags": JSON.parse(res.tags)};
             cb(null, teaser);
           });
         } else {
           teaser["sections"] = [];
-          var query = "SELECT `tags`, `flow_type` FROM `rel__teasers__teaser_sections` AS rel "
+          var query = "SELECT `tags`, `flow_type`, ts.`title` FROM `rel__teasers__teaser_sections` AS rel "
           + "LEFT JOIN `teaser_sections` AS ts ON rel.teaser_section_id = ts.id "
           + "LEFT JOIN `item_queries` AS iq ON iq.id = ts.item_query_id "
           + "WHERE `teaser_id`=?";
           app.db.all(query, data.id, function(err, res) {
-            if (err != null) return res.status(501).end();
+            if (err != null) return resp.status(501).end();
             for (var i=0; i<res.length; i++) {
               var section = res[i];
-              teaser.sections.push({ "flowType": section.flow_type, "itemsQuery": {"tags": JSON.parse(section.tags)} });
+              teaser.sections.push({ 
+                "title": section.title, 
+                "flowType": section.flow_type, 
+                "itemsQuery": {"tags": JSON.parse(section.tags)} 
+              });
             }
             cb(null, teaser);
           });  
@@ -77,7 +85,7 @@ exports.route = function(app, router) {
       }, function(err, teasers) {
         if (!!err) return res.status(501).end();
         var teaserResponse = {"data": teasers};
-        res.status(200).json(app.limitResponse(req, teaserResponse));
+        resp.status(200).json(app.limitResponse(req, teaserResponse));
       });
     });
   }
