@@ -29,15 +29,14 @@ describe('Tests', function() {
   /* /teaser/<id>              */
   /******************************/
 
-  function testLoadTeaserById(cls, cb) {
-    // Test for all teasers in the database that qualify the class
-    db.all("SELECT `id` FROM `teasers` WHERE `class`=?", cls, function(err, res) {
+  function testLoadTeaserById(cb) {
+    db.all("SELECT `id` FROM `teasers` ORDER BY RANDOM() LIMIT 1", function(err, res) {
       assert(!err, "Unexpected error on getting teaser stubs' IDs.");
       async.each(res, function(teaser, cb) {
-        request(app.getBaseUrl(server)+"/teasers/"+teaser.id+"?_exclude=data.title,data.class", function(error, response, body) {
+        request(app.getBaseUrl(server)+"/teasers/"+teaser.id+"?_exclude=data.title", function(error, response, body) {
           assert(!error, "Unexpected error "+error);
           assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
-          validation.checkSchemaRecursive(require('./schemas/teasers/_anyTeaserResponse').for(cls), JSON.parse(body), cb);
+          validation.checkSchemaRecursive(require('./schemas/teasers/teaserResponse'), JSON.parse(body), cb);
         });
       }, function(err) {
         cb(err);
@@ -45,54 +44,29 @@ describe('Tests', function() {
     });
   }
 
-  it("Should fetch a banner teaser by ID", function(done) {
-    testLoadTeaserById("banner", function(err) {
-      done(err);
-    });
-  });
-
-  it("Should fetch a tile teaser by ID", function(done) {
-    testLoadTeaserById("banner", function(err) {
-      done(err);
-    });
-  });
-
-  it("Should fetch a editors teaser by ID", function(done) {
-    testLoadTeaserById("banner", function(err) {
-      done(err);
-    });
-  });
+  it("Should fetch a teaser by ID", testLoadTeaserById);
 
   /******************************/
   /* Teaser lists endpoints     */
-  /* /teasers/<class>           */
+  /* /teasers                   */
   /******************************/
 
-  function testLoadTeaserPageByClass(cls, cb) {
-    request(app.getBaseUrl(server)+"/teasers/"+cls, function(error, response, body) {
+  function testLoadTeaserPageByTag(tag, cb) {
+    request(app.getBaseUrl(server)+"/teasers" + (!!tag ? "?tag="+tag : ""), function(error, response, body) {
       assert(!error, "Unexpected error "+error);
       assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
       // Verify teasers page response schema
-      validation.checkSchemaRecursive(require('./schemas/teasers/'+toCamelCase(cls)+'TeasersResponse'), JSON.parse(body), cb);
+      validation.checkSchemaRecursive(require('./schemas/teasers/teasersResponse'), JSON.parse(body), cb);
     });
   }
 
-  it("Should fetch the first page of banner teasers", function(done) {
-    testLoadTeaserPageByClass("banner", function() {
-      done()
-    });
+  it("Should fetch the first page of teasers by tag", function(done) {
+    testLoadTeaserPageByTag("mobile_home_banners", done);
   });
 
-  it("Should fetch the first page of tile teasers", function(done) {
-    testLoadTeaserPageByClass("tile", function() {
-      done()
-    });
+  it("Should fetch the first page of teasers without tag", function(done) {
+    testLoadTeaserPageByTag(null, done);
   });
 
-  it("Should fetch the first page of editors teasers", function(done) {
-    testLoadTeaserPageByClass("editors_choice", function() {
-      done()
-    });
-  });
 
 });

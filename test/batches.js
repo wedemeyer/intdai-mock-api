@@ -28,8 +28,8 @@ describe('Tests', function() {
   it("Should respond with their individual results", function(done) {
     var baseUrl = app.getBaseUrl(server);
     var requestsUrls = [
-      baseUrl + "/teasers/banner",
-      baseUrl + "/teasers/tile"
+      baseUrl + "/teasers?tag=mobile_home_banners",
+      baseUrl + "/teasers?tag=editors_picks"
     ];
     var url = baseUrl + "/batches";
     requestsUrls.forEach(function(reqUrl) {

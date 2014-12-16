@@ -1,1 +1,0 @@
-exports.getSchema = require("./_anyTeaserResponse").getSchema;

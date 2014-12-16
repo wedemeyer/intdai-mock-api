@@ -1,5 +1,18 @@
 async = require("async");
 
+exports.getSchema = function() {
+	return {
+		id: { 
+			type: String, 
+			required: true, 
+			length: { 
+				min: 36 
+			}, 
+			test: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i 
+		}
+	};
+}
+
 exports.runCustomSchemas = function(run, obj, done) {
 	if (!!obj["sections"] && !!obj["itemsQuery"]) 
 		return done("Cannot have both sections or an item query"); 

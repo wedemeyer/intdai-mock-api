@@ -45,18 +45,21 @@ exports.route = function(app, router) {
     });
   }
 
-  function respondTeaserPageForClass(cls, req, resp) {
-    app.db.all("SELECT * FROM `teasers` WHERE `class`=?", cls, function(err, res) {
+  function respondTeaserPageForTag(tag, req, resp) {
+    var handler = function(err, res) {
       if (err != null) return resp.status(501).end();
       if (res.length == 0) return resp.status(200).json({"data":[]});
       async.map(resp, function(data, cb) {
         var teaser = {
           "id": data.id,
-          "title": data.title,
-          "class": data.class,
-          "imgUrl16x6": data.img_url_16x6
+          "title": data.title
         };
-        if (undefined != data["item_query_id"]) {
+        for (var aspect in ["16x6", "4x6", "3x6", "4x4"]) {
+          if (!!data["img_url_"+aspect]) {
+            teaser["imgUrl16x6"+aspect] = data["img_url_"+aspect];
+          }
+        }
+        if (!!data["item_query_id"]) {
           var query = "SELECT `tags` FROM `item_queries` WHERE `id`=?";
           app.db.get(query, data.item_query_id, function(err, res) {
             if (err != null) return resp.status(501).end();
@@ -87,21 +90,27 @@ exports.route = function(app, router) {
         var teaserResponse = {"data": teasers};
         resp.status(200).json(app.limitResponse(req, teaserResponse));
       });
-    });
+    };
+    if (!!tag) {
+      var query = "SELECT * FROM `teasers` AS `t` "
+      + "INNER JOIN `rel__teasers__teaser_tags` AS `rtt` "
+      + "ON t.id = rtt.teaser_id "
+      + "INNER JOIN `teaser_tags` AS `tt` "
+      + "ON rtt.teaser_tag_id = tt.id "
+      + "WHERE tt.tag = ?";
+      app.db.all(query, tag, handler);
+    } else {
+      var query = "SELECT * FROM `teasers`";
+      app.db.all(query, handler);
+    }
   }
 
+  router.get(/^\/teasers$/, function(req, res) {
+    respondTeaserPageForTag(req.query["tag"], req, res);
+  });
+
   router.get(/^\/teasers\/([^\/]+)$/, function(req, res) {
-    var variable = req.params[0];
-    switch (variable) {
-      case "banner":
-      case "tile": 
-      case "editors_choice":
-        respondTeaserPageForClass(variable, req, res);
-        break;
-      default:
-        respondTeaserById(variable, req, res);
-        break;
-    }
+    respondTeaserById(req.params[0], req, res);
   });
   
 }
