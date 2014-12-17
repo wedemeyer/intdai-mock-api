@@ -5,8 +5,28 @@ exports.errorMsg = "Unexpected products search response schema.";
 exports.getSchema = function() {
 	return {
 		data: {
-			type: Array,
-			required: true
+			type: Object,
+			required: true,
+			page: {
+				type: Object,
+				required: true,
+				page: {
+					Object: Number,
+					required: true
+				},
+				size: {
+					Object: Number,
+					required: true
+				},
+				count: {
+					Object: Number,
+					required: true
+				}
+			},
+			items: {
+				type: Array,
+				required: true
+			}
 		}
 	}
 }

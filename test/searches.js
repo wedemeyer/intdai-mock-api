@@ -29,23 +29,58 @@ describe('Tests', function() {
   /* /searches?query=<query>&type=product */
   /****************************************/
 
-  it("Should fetch all products matching a query", function(done) {
+  var testFirstPageWithDirectives = function(page, pageSize, handler, done) {
     var tags = ["hello", "kitty"];
-    var query = "SELECT `id`, `title` "
-    + "FROM `products` AS `p` "
-    + "INNER JOIN `product_tags` AS `pt` "
-    + "ON p.id = pt.product_id "
-    + "WHERE pt.tag IN ("+tags.map(function(){return "?"}).join()+")";
-    db.all(query, tags, function(err, products) {
-      assert(!err, "Unexpected error when fetching products by query ("+err+")");
-      assert(products.length > 0, "Unexpected missing results when fetching products by query");
-      request(app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product", function(error, response, body) {
+    var url = app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product";
+    if (!!page) url += "&page=" + page;
+    if (!!pageSize) url += "&size=" + pageSize;
+    request(url, handler(done));
+  }
+
+  var successSchemaValidator = function(done) {
+    return function(error, response, body) {
+      assert(!error, "Unexpected error "+error);
+      assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
+      body = JSON.parse(body);
+      validation.checkSchemaRecursive(require('./schemas/searches/productsSearchResponse'), body, function(err) {
+        if (!!err) return done(err, null);
+        done(null, body);
+      });    
+    }    
+  }
+
+  var pageValidator = function(page, size, done) {
+    return function(err, body) {
+      if (!!err) return done(err);
+      assert.equal(body.data.page.page, page, "Unexpected default page `"+body.data.page.page+"`. Expected `"+page+"`.");
+      assert.equal(body.data.page.size, size, "Unexpected default page size `"+body.data.page.size+"`. Expected `"+size+"`.");
+      done();
+    }
+  }
+
+  it("Should fetch first page of products matching a query w/ default page size w/o page directives given", function(done) {
+    testFirstPageWithDirectives(null, null, successSchemaValidator, pageValidator(1, 10, done));
+  });
+
+  it("Should fetch first page of products matching a query w/ default page size for page number directive only", function(done) {
+    testFirstPageWithDirectives(1, null, successSchemaValidator, pageValidator(1, 10, done));
+  });
+
+  it("Should fetch first page of products matching a query w/ full page directives", function(done) {
+    testFirstPageWithDirectives(1, 20, successSchemaValidator, pageValidator(1, 20, done));
+  });
+
+  it("Should get a 404 when fetch a page of products matching a query out of page bounds", function(done) {
+    var tags = ["hello", "kitty"];
+    var url = app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product";
+    request(url, function(error, response, body) {
+      body = JSON.parse(body);
+      var maxPage = Math.ceil(body.data.page.count / body.data.page.size);
+      request(url + "&page="+(maxPage+1), function(error, response, body) {
         assert(!error, "Unexpected error "+error);
-        assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
-        validation.checkSchemaRecursive(require('./schemas/searches/productsSearchResponse'), JSON.parse(body), function(err) {
-          if (!!err) return done(err);
-          done();
-        });        
+        assert(response.statusCode == 404, "Unexpected status code " + response.statusCode);
+        assert(body == "", "Unexpected body: " + body + ". Expected empty body.");
+        done();
       });
     });
   });
@@ -57,17 +92,12 @@ describe('Tests', function() {
 
   it("Should fetch all terms matching a query", function(done) {
     var tags = ["hello", "kitty"];
-    var query = "SELECT `tag` FROM `product_tags`";
-    db.all(query, function(err, res) {
-      assert(!err, "Unexpected error when fetching products by query ("+err+")");
-      assert(res.length > 0, "Unexpected missing tags when fetching tags for terms search by query");
-      request(app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=term", function(error, response, body) {
-        assert(!error, "Unexpected error "+error);
-        assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
-        validation.checkSchemaRecursive(require('./schemas/searches/termsSearchResponse'), JSON.parse(body), function(err) {
-          if (!!err) return done(err);
-          done();
-        });        
+    request(app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=term", function(error, response, body) {
+      assert(!error, "Unexpected error "+error);
+      assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
+      validation.checkSchemaRecursive(require('./schemas/searches/termsSearchResponse'), JSON.parse(body), function(err) {
+        if (!!err) return done(err);
+        done();
       });
     });
   });
