@@ -16,29 +16,24 @@ exports.route = function(app, router) {
       var count = res.count;
       var page = (req.query["page"]||1);
       var size = (req.query["size"]||10);
-      var innerQuery = "SELECT `id`, `current_price`, `previous_price`, `cut` "
-      + "FROM `product_simples` "
-      + "WHERE `product_id` = ? ORDER BY RANDOM() LIMIT 1";
-      var q = query(tags, "`id`, `title`, `mainImgUrl`") + " ORDER BY `id` LIMIT ? OFFSET ?";
+      var q = query(tags, "`id`, `title`, `mainImgUrl`, `current_price`, `previous_price`, `cut`") + " ORDER BY `id` LIMIT ? OFFSET ?";
       app.db.all(q, tags.concat([page, (page-1)*size]), function(err, res) {
         if (!!err) return resp.status(501).end();
         if (res.length == 0) return resp.status(404).end();
         var productIds = [];
         res.forEach(function(data) { productIds.push(data.id) });
         async.map(res, function(data, cb) {
-          app.db.get(innerQuery, data.id, function(err, res) {
-            var obj = {
-              id: data.id,
-              title: data.title,
-              simpleId: res.id,
-              price: {
-                current: res.current_price,
-              }
-            };
-            if (!!res.previous_price) obj.price.previous = res.previous_price;
-            if (!!res.cut) obj.price.cut = res.cut;
-            cb(null, obj);
-          });
+          var obj = {
+            id: data.id,
+            title: data.title,
+            simpleId: data.id,
+            price: {
+              current: data.current_price,
+            }
+          };
+          if (!!data.previous_price) obj.price.previous = data.previous_price;
+          if (!!data.cut) obj.price.cut = data.cut;
+          cb(null, obj);
         }, function(err, products) {
           if (!!err) return resp.status(501).end();
           var productsResponse = { 

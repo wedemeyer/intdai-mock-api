@@ -33,7 +33,7 @@ describe('Tests', function() {
     db.all("SELECT `id` FROM `teasers` ORDER BY RANDOM() LIMIT 1", function(err, res) {
       assert(!err, "Unexpected error on getting teaser stubs' IDs.");
       async.each(res, function(teaser, cb) {
-        request(app.getBaseUrl(server)+"/teasers/"+teaser.id+"?_exclude=data.title", function(error, response, body) {
+        request(app.getBaseUrl(server)+"/teasers/"+teaser.id, function(error, response, body) {
           assert(!error, "Unexpected error "+error);
           assert(response.statusCode == 200, "Unexpected status code " + response.statusCode);
           validation.checkSchemaRecursive(require('./schemas/teasers/teaserResponse'), JSON.parse(body), cb);
