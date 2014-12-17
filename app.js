@@ -16,7 +16,7 @@ exports.create = function() {
     app = express();
     var router = express.Router();
 
-    app.db = new sqlite3.Database(config.production.db.file, sqlite3.OPEN_READONLY);
+    app.db = new sqlite3.Database(__dirname + "/" + config.production.db.file, sqlite3.OPEN_READONLY);
 
     app._exclude = function (json, path) {
         if (path.length == 0) return json;
