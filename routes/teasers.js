@@ -2,46 +2,49 @@ var async = require("async");
 
 exports.route = function(app, router) {
 
-  function createTeaserFromData(data, cb) {
-    var teaser = {
-      "id": data.id,
-      "title": data.title
-    };
-    var finish = function(data, teaser) {
-      teaser["sections"] = [];
-      var query = "SELECT `tags`, `flow_type`, ts.`title` FROM `rel__teasers__teaser_sections` AS rel "
-      + "LEFT JOIN `teaser_sections` AS ts ON rel.teaser_section_id = ts.id "
-      + "LEFT JOIN `item_queries` AS iq ON iq.id = ts.item_query_id "
-      + "WHERE `teaser_id`=?";
+  function createTeaserFromData(isLoadSections) {
+    return function (data, cb) {
+      var teaser = {
+        "id": data.id,
+        "title": data.title
+      };
+      var finish = function(data, teaser) {
+        teaser["sections"] = [];
+        var query = "SELECT `tags`, `flow_type`, ts.`title` FROM `rel__teasers__teaser_sections` AS rel "
+        + "LEFT JOIN `teaser_sections` AS ts ON rel.teaser_section_id = ts.id "
+        + "LEFT JOIN `item_queries` AS iq ON iq.id = ts.item_query_id "
+        + "WHERE `teaser_id`=?";
+        app.db.all(query, teaser.id, function(err, res) {
+          if (err != null) return cb(err);
+          for (var i=0; i<res.length; i++) {
+            var section = res[i];
+            teaser.sections.push({ 
+              "title": section.title, 
+              "flowType": section.flow_type, 
+              "itemsQuery": {"tags": JSON.parse(section.tags)} 
+            });
+          }
+          cb(null, teaser);
+        });
+      }
+      var query = "SELECT `key`, `url` FROM `teaser_image_urls` WHERE `teaser_id` = ?";
       app.db.all(query, teaser.id, function(err, res) {
         if (err != null) return cb(err);
-        for (var i=0; i<res.length; i++) {
-          var section = res[i];
-          teaser.sections.push({ 
-            "title": section.title, 
-            "flowType": section.flow_type, 
-            "itemsQuery": {"tags": JSON.parse(section.tags)} 
-          });
+        if (res.length > 0) {
+          teaser.imgUrls = {};
+          res.forEach(function(data) { teaser.imgUrls[data.key] = data.url; });
         }
-        cb(null, teaser);
+        if (isLoadSections) return finish(data, teaser);
+        cb(null, teaser)
       });
     }
-    var query = "SELECT `key`, `url` FROM `teaser_image_urls` WHERE `teaser_id` = ?";
-    app.db.all(query, teaser.id, function(err, res) {
-      if (err != null) return cb(err);
-      if (res.length > 0) {
-        teaser.imgUrls = {};
-        res.forEach(function(data) { teaser.imgUrls[data.key] = data.url; });
-      }
-      finish(data, teaser);
-    });
   }
 
   function respondTeaserById(id, req, resp) {
     app.db.get("SELECT * FROM `teasers` WHERE `id`=?", id, function(err, res) {
       if (!!err) return resp.status(501).end();
       if (!res) return resp.status(404).end();
-      createTeaserFromData(res, function(err, teaser) {
+      createTeaserFromData(true)(res, function(err, teaser) {
         if (err) return resp.status(501).end();
         resp.status(200).json(app.limitResponse(req, { data: teaser }));
       });
@@ -52,7 +55,7 @@ exports.route = function(app, router) {
     var handler = function(err, res) {
       if (err != null) return resp.status(501).end();
       if (res.length == 0) return resp.status(200).json({"data":[]});
-      async.map(res, createTeaserFromData, function(err, teasers) {
+      async.map(res, createTeaserFromData(false), function(err, teasers) {
         if (!!err) return res.status(501).end();
         var teaserResponse = {"data": teasers};
         resp.status(200).json(app.limitResponse(req, teaserResponse));

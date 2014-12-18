@@ -13,6 +13,6 @@ exports.getSchema = function() {
 
 exports.runCustomSchemas = function(run, obj, done) {
 	async.each(obj.data, function(teaser, cb) {
-		run(require('./teaser'), teaser, cb);
+		run(require('./teaserHeader'), teaser, cb);
 	}, done);
 }
