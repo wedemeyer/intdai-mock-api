@@ -70,7 +70,7 @@ describe('Tests', function() {
     testFirstPageWithDirectives(1, 20, successSchemaValidator, pageValidator(1, 20, done));
   });
 
-  it("Should get a 404 when fetch a page of products matching a query out of page bounds", function(done) {
+  it("Should get a 404 when query products on page out of page bounds", function(done) {
     var tags = ["hello", "kitty"];
     var url = app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product";
     request(url, function(error, response, body) {
@@ -79,6 +79,20 @@ describe('Tests', function() {
       request(url + "&page="+(maxPage+1), function(error, response, body) {
         assert(!error, "Unexpected error "+error);
         assert(response.statusCode == 404, "Unexpected status code " + response.statusCode);
+        assert(body == "", "Unexpected body: " + body + ". Expected empty body.");
+        done();
+      });
+    });
+  });
+
+  it("Should get a 400 when query products matching at page size above convention", function(done) {
+    var tags = ["hello", "kitty"];
+    var url = app.getBaseUrl(server)+"/searches?query="+tags.join(" ")+"&type=product";
+    request(url, function(error, response, body) {
+      body = JSON.parse(body);
+      request(url + "&page=1&size=31", function(error, response, body) {
+        assert(!error, "Unexpected error "+error);
+        assert(response.statusCode == 400, "Unexpected status code " + response.statusCode);
         assert(body == "", "Unexpected body: " + body + ". Expected empty body.");
         done();
       });

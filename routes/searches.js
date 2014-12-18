@@ -16,6 +16,8 @@ exports.route = function(app, router) {
       var count = res.count;
       var page = (req.query["page"]||1);
       var size = (req.query["size"]||10);
+      // Limit page size and respond with client error status code if limitation convention was breached
+      if (size > 30) return resp.status(400).end();
       var q = query(tags, "`id`, `title`, `mainImgUrl`, `current_price`, `previous_price`, `cut`") + " ORDER BY `id` LIMIT ? OFFSET ?";
       app.db.all(q, tags.concat([page, (page-1)*size]), function(err, res) {
         if (!!err) return resp.status(501).end();
