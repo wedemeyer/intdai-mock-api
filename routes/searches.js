@@ -28,9 +28,8 @@ exports.route = function(app, router) {
           var obj = {
             id: data.id,
             title: data.title,
-            simpleId: data.id,
             price: {
-              current: data.current_price,
+              current: data.current_price
             }
           };
           if (!!data.previous_price) obj.price.previous = data.previous_price;
@@ -41,9 +40,9 @@ exports.route = function(app, router) {
           var productsResponse = { 
             "data": {
               "page": {
-                "page": page,
+                "page": parseInt(page),
                 "count": count,
-                "size": size
+                "size": parseInt(size)
               },
               "items": products 
             }

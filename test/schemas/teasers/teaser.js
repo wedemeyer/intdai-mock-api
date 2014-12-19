@@ -30,13 +30,17 @@ exports.getSchema = function() {
 }
 
 exports.runCustomSchemas = function(run, obj, done) {
-	async.each(obj.sections, function(section, cb) {
-		run(require("./teaserSection"), section, cb);
-	}, function(err) {
-		if (!!err) return done(err);
-		async.each(Object.keys(obj.imgUrls), function(key, cb) {
-			assert(/^http(s)?:\/\/.+\.[a-z]+$/.test(obj.imgUrls[key]), "Unexpected teaser image URL format");
-			cb();
-		}, done);
-	});
+	async.parallel([
+		function(cb) {
+			async.each(obj.sections, function(section, cb) {
+				run(require("./teaserSection"), section, cb);
+			}, cb);
+		},
+		function(cb) {
+			async.each(Object.keys(obj.imgUrls), function(key, cb) {
+				assert(/^http(s)?:\/\/.+\.[a-z]+$/.test(obj.imgUrls[key]), "Unexpected teaser image URL format");
+				cb();
+			}, cb);
+		}
+	], done);
 };

@@ -7,7 +7,7 @@ var config = require('../config');
 var sqlite3 = require('sqlite3');
 var validation = require('../lib/validation');
 
-describe('Tests', function() {
+describe('Tests batches', function() {
 
   before(function(done) {
     app = require('./../app').create();

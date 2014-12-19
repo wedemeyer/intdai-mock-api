@@ -10,7 +10,7 @@ var validation = require('../lib/validation');
 var toCamelCase = require("to-camel-case");
 var db = null;
 
-describe('Tests', function() {
+describe('Tests categories', function() {
 
   before(function(done) {
     app = require('./../app').create();

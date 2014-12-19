@@ -7,10 +7,9 @@ var server = null;
 var config = require('../config');
 var sqlite3 = require('sqlite3');
 var validation = require('../lib/validation');
-var toCamelCase = require("to-camel-case");
 var db = null;
 
-describe('Tests', function() {
+describe('Tests teasers', function() {
 
   before(function(done) {
     app = require('./../app').create();

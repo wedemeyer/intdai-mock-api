@@ -1,6 +1,6 @@
 var async = require("async");
 
-exports.errorMsg = "Unexpected products search response schema.";
+exports.errorMsg = "Unexpected recommendation products response schema.";
 
 exports.getSchema = function() {
 	return {

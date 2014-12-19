@@ -27,7 +27,7 @@ exports.route = function(app, router) {
           cb(null, teaser);
         });
       }
-      var query = "SELECT `key`, `url` FROM `teaser_image_urls` WHERE `teaser_id` = ?";
+      var query = "SELECT `key`, `url` FROM `image_urls` WHERE `ref_id` = ?";
       app.db.all(query, teaser.id, function(err, res) {
         if (err != null) return cb(err);
         if (res.length > 0) {

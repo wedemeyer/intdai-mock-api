@@ -19,6 +19,19 @@ var schema = {
 	price: {
 		type: Object,
 		required: true,
+		currency: {
+			type: Object,
+			required: true,
+			iso4721: {
+				type: String,
+				required: true,
+				test: /^[A-Z]{3}$/
+			},
+			uniHex: {
+				type: String,
+				required: true
+			}
+		},
 		current: {
 			type: String,
 			required: true,
