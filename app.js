@@ -1,6 +1,8 @@
 var config = require('./config');
 var express = require('express');
 var sqlite3 = require('sqlite3');
+var bodyParser = require('body-parser');
+var compress = require('compression');
 
 exports.create = function() {
 
@@ -14,6 +16,8 @@ exports.create = function() {
     }; 
 
     app = express();
+    app.use(compress());  
+    app.use(bodyParser.json());
     var router = express.Router();
 
     app.db = new sqlite3.Database(__dirname + "/" + config.production.db.file, sqlite3.OPEN_READONLY);
