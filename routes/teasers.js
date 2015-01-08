@@ -17,8 +17,13 @@ exports.route = function(app, router) {
         app.db.all(query, teaser.id, function(err, res) {
           if (err != null) return cb(err);
           for (var i=0; i<res.length; i++) {
+            var sortOptions = null;
+            do {
+                sortOptions = [ "relevance", "popularity", "price", "discount", "time" ].filter(function() { return Math.round(Math.random()*1000) % 2 });
+            } while (sortOptions.length == 0);
             var section = res[i];
             teaser.sections.push({ 
+              "sortOptions": sortOptions,
               "title": section.title, 
               "flowType": section.flow_type, 
               "itemsQuery": {"tags": JSON.parse(section.tags)} 
